@@ -9,9 +9,10 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 public interface UserService {
-    public User createRequest(UserCreationRequest request);
-    public List<User> getAllUsers();
+    public UserResponse createRequest(UserCreationRequest request);
+    public List<UserResponse> getAllUsers();
     public UserResponse getUserById(String id);
     public UserResponse updateUser(String UserId, UserUpdateRequest request);
     public void deleteUser(String UserId);
+    public UserResponse getMyInfo();
 }

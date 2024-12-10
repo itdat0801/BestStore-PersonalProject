@@ -1,24 +1,28 @@
 package com.personal.dat.be.best_store_server.exception;
 
-public enum ErrorCode {
-    UNCATEGORIZED_EXCEPTION(9999, "Uncategorized Exceptions"),
-    INVALID_KEY(1500, "invalid message Key"),
-    USER_EXISTED(1001, "User existed"),
-    USERNAME_INVALID(1002, "username must be at least 3 characters"),
-    PASSWORD_INVALID(1003, "password must be at least 8 characters");
-    private int code;
-    private String message;
+import lombok.Getter;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 
-    ErrorCode(int code, String message) {
+@Getter
+public enum ErrorCode {
+    UNCATEGORIZED_EXCEPTION(9999, "Uncategorized Exceptions", HttpStatus.INTERNAL_SERVER_ERROR),
+    INVALID_KEY(1001, "invalid message Key", HttpStatus.BAD_REQUEST),
+    USER_EXISTED(1002, "User existed", HttpStatus.BAD_REQUEST),
+    USER_NOT_EXISTED(1003, "User not existed", HttpStatus.NOT_FOUND),
+    USERNAME_INVALID(1004, "username must be at least 3 characters", HttpStatus.BAD_REQUEST),
+    PASSWORD_INVALID(1005, "password must be at least 8 characters", HttpStatus.BAD_REQUEST),
+    UNAUTHENTICATED(1006, "Unauthenticated", HttpStatus.UNAUTHORIZED),
+    UNAUTHORIZED(1007, "You do not have permission", HttpStatus.FORBIDDEN),
+    ;
+    private final int code;
+    private final String message;
+    private final HttpStatusCode statusCode;
+
+
+    ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;
         this.message = message;
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public String getMessage() {
-        return message;
+        this.statusCode = statusCode;
     }
 }
