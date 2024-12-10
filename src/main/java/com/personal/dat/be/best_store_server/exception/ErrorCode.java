@@ -14,6 +14,7 @@ public enum ErrorCode {
     PASSWORD_INVALID(1005, "password must be at least 8 characters", HttpStatus.BAD_REQUEST),
     UNAUTHENTICATED(1006, "Unauthenticated", HttpStatus.UNAUTHORIZED),
     UNAUTHORIZED(1007, "You do not have permission", HttpStatus.FORBIDDEN),
+    INVALID_DOB(1008, "Dob Must be more 18 years old", HttpStatus.BAD_REQUEST),
     ;
     private final int code;
     private final String message;
