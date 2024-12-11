@@ -33,7 +33,7 @@ import javax.crypto.spec.SecretKeySpec;
 public class SecurityConfig {
 
     private final String[] PUBLIC_ENDPOINTS = {"/auth/log-in","/auth/introspect", "/users", "/auth/token"
-            ,"/auth/logout" };
+            ,"/auth/logout", "/auth/refresh" };
     @Value("${jwt.signerKey}")
     private String signerKey;
     @Autowired

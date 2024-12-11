@@ -4,6 +4,7 @@ import com.nimbusds.jose.JOSEException;
 import com.personal.dat.be.best_store_server.dto.request.AuthenticationRequest;
 import com.personal.dat.be.best_store_server.dto.request.IntrospectRequest;
 import com.personal.dat.be.best_store_server.dto.request.LogoutRequest;
+import com.personal.dat.be.best_store_server.dto.request.RefreshRequest;
 import com.personal.dat.be.best_store_server.dto.response.AuthenticationResponse;
 import com.personal.dat.be.best_store_server.dto.response.IntrospectResponse;
 
@@ -14,4 +15,5 @@ public interface AuthenticationService {
     AuthenticationResponse authenticate(AuthenticationRequest request);
     IntrospectResponse introspect(IntrospectRequest request) throws JOSEException, ParseException;
     void logout(LogoutRequest request) throws ParseException, JOSEException;
+    AuthenticationResponse refresh(RefreshRequest request) throws ParseException, JOSEException;
 }

@@ -1,10 +1,7 @@
 package com.personal.dat.be.best_store_server.controller;
 
 import com.nimbusds.jose.JOSEException;
-import com.personal.dat.be.best_store_server.dto.request.ApiRespronse;
-import com.personal.dat.be.best_store_server.dto.request.AuthenticationRequest;
-import com.personal.dat.be.best_store_server.dto.request.IntrospectRequest;
-import com.personal.dat.be.best_store_server.dto.request.LogoutRequest;
+import com.personal.dat.be.best_store_server.dto.request.*;
 import com.personal.dat.be.best_store_server.dto.response.AuthenticationResponse;
 import com.personal.dat.be.best_store_server.dto.response.IntrospectResponse;
 import com.personal.dat.be.best_store_server.service.AuthenticationService;
@@ -46,6 +43,13 @@ public class AuthenticationController {
     ApiRespronse<Void> logout(@RequestBody LogoutRequest request) throws ParseException, JOSEException {
         authenticationService.logout(request);
         return ApiRespronse.<Void>builder()
+                .build();
+    }
+    @PostMapping("/refresh")
+    ApiRespronse<AuthenticationResponse> refreshToken(@RequestBody RefreshRequest request) throws ParseException, JOSEException {
+        var result = authenticationService.refresh(request);
+        return ApiRespronse.<AuthenticationResponse>builder()
+                .result(result)
                 .build();
     }
 }

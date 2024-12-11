@@ -8,6 +8,7 @@ import com.nimbusds.jwt.SignedJWT;
 import com.personal.dat.be.best_store_server.dto.request.AuthenticationRequest;
 import com.personal.dat.be.best_store_server.dto.request.IntrospectRequest;
 import com.personal.dat.be.best_store_server.dto.request.LogoutRequest;
+import com.personal.dat.be.best_store_server.dto.request.RefreshRequest;
 import com.personal.dat.be.best_store_server.dto.response.AuthenticationResponse;
 import com.personal.dat.be.best_store_server.dto.response.IntrospectResponse;
 import com.personal.dat.be.best_store_server.entity.InvalidatedToken;
@@ -84,16 +85,40 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public void logout(LogoutRequest request) throws ParseException, JOSEException {
-        var signToken = verifyToken(request.getToken());
+        var sigedJWT = verifyToken(request.getToken());
 
-        String jit = signToken.getJWTClaimsSet().getJWTID();
-        Date expiryTime = signToken.getJWTClaimsSet().getExpirationTime();
+        String jit = sigedJWT.getJWTClaimsSet().getJWTID();
+        Date expiryTime = sigedJWT.getJWTClaimsSet().getExpirationTime();
 
         InvalidatedToken invalidatedToken = InvalidatedToken.builder()
                 .id(jit)
                 .expiryTime(expiryTime)
                 .build();
         invalidatedTokenRepository.save(invalidatedToken);
+    }
+
+    @Override
+    public AuthenticationResponse refresh(RefreshRequest request) throws ParseException, JOSEException {
+        var sigedJWT = verifyToken(request.getToken());
+
+        String jit = sigedJWT.getJWTClaimsSet().getJWTID();
+        Date expiryTime = sigedJWT.getJWTClaimsSet().getExpirationTime();
+
+        InvalidatedToken invalidatedToken = InvalidatedToken.builder()
+                .id(jit)
+                .expiryTime(expiryTime)
+                .build();
+        invalidatedTokenRepository.save(invalidatedToken);
+
+        var username = sigedJWT.getJWTClaimsSet().getSubject();
+        var user = userRepository.findByUsername(username).orElseThrow(()
+                -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        var token = generateToken(user);
+        return AuthenticationResponse.builder()
+                .token(token)
+                .authenticated(true)
+                .build();
     }
 
     private String generateToken(User user) {
