@@ -14,7 +14,10 @@ import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Component;
 
 import com.nimbusds.jose.JOSEException;
-
+/**
+ * Author: Nguyễn Tiến Đạt
+ * Target: Custom JwtDecoder to use in verify, Introspect and logout
+ */
 @Component
 public class CustomJwtDecoder implements JwtDecoder {
     @Value("${jwt.signerKey}")

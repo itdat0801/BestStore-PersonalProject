@@ -11,7 +11,11 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
 import java.io.IOException;
-
+/**
+ * Author: Nguyễn Tiến Đạt
+ * Target: This is config class for Authentication Entry Point,
+ * It used in method FilterChain, result is a json value when authentication failed
+ */
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     @Override

@@ -13,6 +13,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Author: Nguyễn Tiến Đạt
+ * Target: Handle ALl exception
+ */
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {

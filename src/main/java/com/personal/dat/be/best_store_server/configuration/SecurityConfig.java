@@ -23,11 +23,15 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.security.web.SecurityFilterChain;
 
 import javax.crypto.spec.SecretKeySpec;
-
+/**
+ * Author: Nguyễn Tiến Đạt
+ * Target: SecurityConfig is using config jwt of all user
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
+
     private final String[] PUBLIC_ENDPOINTS = {"/auth/log-in","/auth/introspect", "/users", "/auth/token"
             ,"/auth/logout" };
     @Value("${jwt.signerKey}")
@@ -36,6 +40,8 @@ public class SecurityConfig {
     private CustomJwtDecoder customJwtDecoder;
 
     private NimbusJwtDecoder nimbusJwtDecoder = null;
+    // this is an annotation filter, it is using when client sent any require with end points
+    //  then it check auth and permission of this user to have been known to access or no
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
        httpSecurity.authorizeHttpRequests(request ->
@@ -61,15 +67,6 @@ public class SecurityConfig {
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
         return jwtAuthenticationConverter;
     }
-
-//    @Bean
-//    JwtDecoder jwtDecoder() {
-//        SecretKeySpec secretKeySpec = new SecretKeySpec(signerKey.getBytes(), "HS512");
-//        return NimbusJwtDecoder
-//                .withSecretKey(secretKeySpec)
-//                .macAlgorithm(MacAlgorithm.HS512)
-//                .build();
-//    }
 
     @Bean
     PasswordEncoder passwordEncoder() {
