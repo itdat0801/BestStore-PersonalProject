@@ -50,6 +50,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Value("${jwt.signerKey}")
     protected String SIGNER_KEY;
 
+    @NonFinal
+    @Value("${jwt.valid-duration}")
+    protected long VALID_DURATION;
+
+    @NonFinal
+    @Value("${jwt.refreshable-duration}")
+    protected long REFRESHABLE_DURATION;
+
     @Override
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
 
@@ -73,7 +81,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         var token = request.getToken();
         boolean isValid = true;
         try{
-            verifyToken(token);
+            verifyToken(token, false);
         }catch (AppException e){
             isValid = false;
         }
@@ -85,24 +93,29 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public void logout(LogoutRequest request) throws ParseException, JOSEException {
-        var sigedJWT = verifyToken(request.getToken());
+        try {
+            //refresh token for user logout if token already expired
+            var signedJWT = verifyToken(request.getToken(), true);
 
-        String jit = sigedJWT.getJWTClaimsSet().getJWTID();
-        Date expiryTime = sigedJWT.getJWTClaimsSet().getExpirationTime();
+            String jit = signedJWT.getJWTClaimsSet().getJWTID();
+            Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
 
-        InvalidatedToken invalidatedToken = InvalidatedToken.builder()
-                .id(jit)
-                .expiryTime(expiryTime)
-                .build();
-        invalidatedTokenRepository.save(invalidatedToken);
+            InvalidatedToken invalidatedToken = InvalidatedToken.builder()
+                    .id(jit)
+                    .expiryTime(expiryTime)
+                    .build();
+            invalidatedTokenRepository.save(invalidatedToken);
+        } catch (AppException e){
+            log.info("Token already expired");
+        }
     }
 
     @Override
     public AuthenticationResponse refresh(RefreshRequest request) throws ParseException, JOSEException {
-        var sigedJWT = verifyToken(request.getToken());
+        var signedJWT = verifyToken(request.getToken(), true);
 
-        String jit = sigedJWT.getJWTClaimsSet().getJWTID();
-        Date expiryTime = sigedJWT.getJWTClaimsSet().getExpirationTime();
+        String jit = signedJWT.getJWTClaimsSet().getJWTID();
+        Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
 
         InvalidatedToken invalidatedToken = InvalidatedToken.builder()
                 .id(jit)
@@ -110,7 +123,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .build();
         invalidatedTokenRepository.save(invalidatedToken);
 
-        var username = sigedJWT.getJWTClaimsSet().getSubject();
+        var username = signedJWT.getJWTClaimsSet().getSubject();
         var user = userRepository.findByUsername(username).orElseThrow(()
                 -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
@@ -129,7 +142,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .issueTime(new Date())
                 .expirationTime(new Date(
                         // thiet lap thoi gian het han cua token la 1 tieng
-                        Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli()
+                        Instant.now().plus(VALID_DURATION, ChronoUnit.SECONDS).toEpochMilli()
                 ))
                 .jwtID(UUID.randomUUID().toString())
                 .claim("scope", buildScope(user))
@@ -163,18 +176,23 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     // check token
-    private SignedJWT verifyToken(String token) throws JOSEException, ParseException {
+    private SignedJWT verifyToken(String token, boolean isRefresh) throws JOSEException, ParseException {
         JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes());
 
         SignedJWT signedJWT = SignedJWT.parse(token);
 
         // get expirationTime to test
-        Date expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+        Date expiryTime = (isRefresh)
+                ? new Date( signedJWT.getJWTClaimsSet()
+                .getIssueTime().toInstant()
+                .plus(REFRESHABLE_DURATION, ChronoUnit.SECONDS)
+                .toEpochMilli())
+                : signedJWT.getJWTClaimsSet().getExpirationTime();
 
         // verified token
         var verified = signedJWT.verify(verifier);
         // if token is not in expiration time
-        if (!(verified && expirationTime.after(new Date())))
+        if (!(verified && expiryTime.after(new Date())))
             throw new AppException(ErrorCode.UNAUTHENTICATED);
 
         if (invalidatedTokenRepository.existsById(signedJWT.getJWTClaimsSet().getJWTID()))
